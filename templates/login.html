@@ -1,0 +1,113 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/css/style.css" media="screen">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <title>FORUM</title>
+
+</head>
+
+<body>
+  <!-- Navigation bar -->
+  <header class="header">
+      <!-- Logo -->
+      <a href="/login" class="logo">Login Page</a>
+
+      <!-- Hamburger icon -->
+      <input class="side-menu" type="checkbox" id="side-menu"/>
+      <label class="hamb" for="side-menu"><span class="hamb-line"></span></label>
+
+       <!-- Menu -->
+    <nav class="nav withoverflow">
+      <div class="menu">
+        <div><a class="menu-a" href="/posts">All Posts</a></div>
+        <div><a class="menu-a" href="/registration">Registration</a></div>
+        <div><a class="menu-a" href="/login">Login</a></div>
+      </div>
+    </nav>
+    <section class="w-100 p-4 d-flex justify-content-center pb-4">
+      <div style="width: 26rem;">
+        {{if .ErrorMessage}}
+          <div class="alert alert-danger justify-content-center d-flex">{{.ErrorMessage}}</div>
+        {{end}}
+        <!-- Pills content -->
+        <div class="tab-content">
+          <div class="tab-pane fade show active" id="pills-login" role="tabpanel" aria-labelledby="tab-login">
+            <form id="loginForm">
+              <!-- Email input -->
+              <div class="form-outline mb-4">
+                <label class="form-label" for="loginEmail" style="margin-left: 0px;">Email</label>
+                <input type="email" name="loginEmail" id="loginEmail" class="form-control" required>
+              <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 8px;"></div><div class="form-notch-trailing"></div></div></div>
+
+              <!-- Password input -->
+              <div class="form-outline mb-4">
+                <label class="form-label" for="loginPassword" style="margin-left: 0px;">Password</label>
+                <input type="password" name="loginPassword" id="loginPassword" class="form-control" required>
+              <div class="form-notch"><div class="form-notch-leading" style="width: 9px;"></div><div class="form-notch-middle" style="width: 68px;"></div><div class="form-notch-trailing"></div></div></div>
+
+              <!-- Submit button -->
+              <button type="submit" class="btn btn-primary btn-block mb-4">Sign in</button>
+
+              <!-- Register buttons -->
+              <div class="text-center">
+                <p>Not a member? <a href="/registration">Register</a></p>
+              </div>
+            </form>
+          </div>
+        </div>
+        <!-- Pills content -->
+      </div>
+    </section>
+  </header>
+  <!-- Main content -->
+  <main>
+  </main>
+</body>
+<script>
+// Get the form element
+const form = $('#loginForm');
+
+// Add a submit event listener to the form
+form.on('submit', (event) => {
+  // Prevent the default form submission behavior
+  event.preventDefault();
+
+  // Serialize the form data
+  const formData = form.serialize();
+
+  // Send an AJAX request to submit the form
+  $.ajax({
+    url: '/login',
+    type: 'POST',
+    data: formData,
+    dataType: 'json',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    success: (response) => {
+      // Save the token to a cookie
+      document.cookie = `token=${response.token}; expires=${response.expires}; path=/`;
+
+      // Redirect to the success page
+      window.location.href = '/';
+    },
+    error: (xhr, status) => {
+      if (xhr.status == 401) {
+        window.location.href = '/login?error=Incorrect credentials';
+      }
+      if (xhr.status == 400) {
+        window.location.href = '/login?error=Incorrect email or password';
+      }
+    }
+  });
+});
+</script>
+</html>
+

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="/css/style.css" media="screen">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-KK94CHFLLe+nY2dmCWGMq91rCGa5gtU4mk92HdvYe+M/SXH301p5ILy+dN9+nJOZ" crossorigin="anonymous">
+  <link rel="stylesheet" href="/css/postPage.css" media="screen">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <title>Post Page</title>
+</head>
+<body>
+  <header class="header">
+    <!-- Logo -->
+    <a href="#" class="logo">Post</a>
+    <!-- Hamburger icon -->
+    <input class="side-menu" type="checkbox" id="side-menu"/>
+    <label class="hamb" for="side-menu"><span class="hamb-line"></span></label>
+    <!-- Menu -->
+    <nav class="nav withoverflow">
+      <div class="menu">
+          <div><a class="menu-a" href="/posts">All Posts</a></div>
+          <div id="authorized">
+            <div><a class="menu-a" href="/registration">Registration</a></div>
+            <div><a class="menu-a" href="/login">Login</a></div>
+          </div>
+          <div class="logout">
+            <div><a class="menu-a counter" href="/activity">Activity</a></div>
+            <div><a class="menu-a" href="/logout">Logout</a></div>
+          </div>
+        </div>
+    </nav>
+</header>
+  <h1>Post</h1>
+  <div id="slideContainer" class="artist"></div>
+  <div class="container">
+    <div id="post"></div>
+    <div class="comments-section">
+      <div class="comments-list" id="comments-list"></div>
+      <div class="comments-form">
+        <form action="v1/comment/create" method="post" class="comment-form" style="font-family: Arial, sans-serif;">
+          <div style="margin-bottom: 10px;">
+            <input type="hidden" name="post-id" value="{{.Post_info.Id}}">
+            <label for="comment-text" style="display: block; font-size: 16px; font-weight: bold;">Comment:</label>
+            <textarea id="comment-text" name="comment-text" required style="padding: 5px; font-size: 14px; border: 1px solid #ccc; border-radius: 15px;"></textarea>
+          </div>
+          <div>
+            <button type="submit" style="padding: 10px 20px; background-color: #333; color: #fff; font-size: 16px; border: none; border-radius: 15px; cursor: pointer;">Add Comment</button>
+          </div>
+        </form>        
+      </div>
+  </div>
+    
+    
+  </div>
+  
+</body>
+</html>
+<script>
+  var postAndComments = {{.}}
+  var post = postAndComments.post_info
+  var comments = postAndComments.comments
+  var postDate = new Date(post.date)
+  var isAuthorized = postAndComments.autorized
+  if (isAuthorized) {
+    $("#authorized").addClass("hidden");
+  } else {
+    $(".logout").addClass("hidden");
+  }
+  $("#comment-text").on("input", function() {
+    var input = document.getElementById('comment-text');
+    //checks for deletion of text
+    if (input.value.length > 300) {
+      alert("comment must have only 300 characters")
+    // If it is, remove the last character from the input value
+    input.value = input.value.slice(0, 300);
+  }
+    //the show
+  });
+//post info to html
+var content = ""
+  content += 
+  `<div class="post">
+    <div class="post-image">
+      <img alt="" src="/imgs/` + post.imageName + `">
+    </div>
+    <div class="post-content">
+      <div class="post-metadata">
+        <span class="post-date">` + postDate.toDateString() +`</span>
+        <span class="post-category category">` + post.categories + `</span>
+        <span class="post-likes">
+          <a href="/v1/post/like?type=true&postId=` + post.id + `">
+            <img style="width: 25px;" alt="" src="/imgs/thumbs-up-regular.svg">
+          </a>
+          ` + post.likes + `
+        </span>
+        <span class="post-dislikes">
+          <a href="/v1/post/like?type=false&postId=` + post.id + `">
+            <img style="width: 25px;" alt="" src="/imgs/thumbs-down-regular.svg">
+          </a>
+          ` + post.dislikes +`
+        </span>
+      </div>
+      <h2 class="post-title">
+        <a>`+ post.title +`</a>
+      </h2>
+      <div class="post-text">`+ post.content +`</div>
+    </div>
+  </div>`;
+  document.getElementById("post").innerHTML = content;
+var commentsContent = '<div>'
+//coments info to html
+if (comments) {
+  comments.forEach(function(comment) {
+  var commDate = new Date(comment.date)
+    commentsContent += 
+    `<div class="comment" data-id="`+ comment.id +`">
+      <div class="comment-metadata">
+        <span class="comment-author">`+ comment.authorName+`</span>
+        <span class="comment-date">` + commDate.toDateString() +`</span>
+        <span class="comment-likes">
+          `+ getEditButton(comment, post, postAndComments.userId) +`
+          <a href="/v1/comment/like?type=true&commentId=` + comment.id + `&postId=` + post.id + `">
+            <img style="width: 25px;" alt="" src="/imgs/thumbs-up-regular.svg">
+          </a>
+          ` + comment.likes + `
+          </span>
+          <span class="comment-dislikes">
+            <a href="/v1/comment/like?type=false&commentId=` + comment.id + `&postId=` + post.id + `">
+            <img style="width: 25px;" alt="" src="/imgs/thumbs-down-regular.svg">
+            </a>
+            ` + comment.dislikes +`
+           
+            </span>
+      </div>
+      <div class="comment-text">
+        <div class="comment-text"><p>Text: `+ comment.content +`</p></div>
+        
+      </div>
+    </div>
+    `
+  }); 
+}
+  commentsContent += '</div>';
+  document.getElementById("comments-list").innerHTML = commentsContent;
+  //document.getElementById("calendar-body").innerHTML = res;
+  function getEditButton(comment, post, userId) {
+    if (comment.authorId == userId) {
+      return `
+        <a href="/v1/comment/edit?comment_id=` + comment.id + `">
+          <i class="material-icons" style="font-size:24px;">edit</i>
+        </a>
+        <a href="/v1/comment/delete?comment_id=` + comment.id + `" onclick="confirmDelete(event)">
+          <i class="material-icons" style="font-size:24px;">delete</i>
+        </a>`
+    }
+    return ``
+  }
+  function confirmDelete(event) {
+    if (confirm("Are you sure you want to delete this comment?")) {
+      // Proceed with the deletion
+      window.location.href = event.target.parentNode.getAttribute("href");
+    } else {
+      // Cancel the deletion
+      event.preventDefault();
+    }
+  }
+</script>
+<style>
+  .highlight {
+    background-color: #a5a5a7;
+  }
+</style>
+<script>
+  $(document).ready(function() {
+      // Fetch activity count from the server
+    $.get('/get-activities-count', function(count) {
+      console.log(count.activitiesCount)
+      if (count.activitiesCount != 0) {
+        $('.counter').text(' +' + count.activitiesCount + ' Activity');
+      }
+    });
+    // Get the URL parameters
+    var urlParams = new URLSearchParams(window.location.search);
+
+    // Extract the comment-id from the URL
+    var commentId = urlParams.get('comment-id');
+
+    if (commentId) {
+      // Find the comment with the matching data-id attribute and apply the highlight class
+      $('[data-id="' + commentId + '"]').addClass('highlight');
+    }
+  });
+</script>
